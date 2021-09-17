@@ -5,12 +5,19 @@
 #include <set>
 #include <stdlib.h>
 
+#ifndef UTF_8
+#define UTF_8
+#pragma execution_character_set("utf-8")
+#endif
+
+
+
 using namespace std;
 
 int string_count;
 set<int> string_numbers;
 DWORD dwDesAccess = GENERIC_READ | GENERIC_WRITE, dwFlgAndAttributes = 0;
-string from, to;
+wchar_t * from,* to;
 
 
 
@@ -57,12 +64,13 @@ bool CLI_CONFIG(int argc, char* argv[]) {
             continue;
         }
         if (((string)argv[i]).find("-") == -1 && !SET_FM) {
-            from = argv[i];
+            from = (wchar_t*)argv[i];
+           
             SET_FM = true;
             continue;
         }
         if (((string)argv[i]).find("-") == -1 && !SET_TO) {
-            to = argv[i];
+            to = (wchar_t*)argv[i];
             SET_TO = true;
             continue;
         }
@@ -77,10 +85,28 @@ int main(int argc, char * argv[])
 {
     char buffer[1024];
     HANDLE hInput, hOutput;
-    SetConsoleCP(1251);
-    SetConsoleOutputCP(1251);
+    /*SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);*/
     if (!CLI_CONFIG(argc, argv))return -1;
-    cout << "\n";
+    cout << from << ' ' << to;
+    hInput = CreateFile(
+        from,
+        dwDesAccess,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL
+    );
+    hOutput = CreateFile(
+        to,
+        dwDesAccess,
+        FILE_SHARE_READ,
+        NULL, 
+        OPEN_ALWAYS,
+        dwFlgAndAttributes,
+        NULL
+    );
 
     return 0;
 }
