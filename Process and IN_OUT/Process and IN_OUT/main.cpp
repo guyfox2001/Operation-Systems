@@ -1,47 +1,89 @@
-// 4 процесса, ѕараллельно первые три, после завершени€ трех Ц
-// параллельно последние два, после того, как один завершитс€- третий. P-2 Q-2.
-// GetStdHandle/SetStdHandle; вывод, ввод/вывод, ввод
-// copy, create, echo, find, sort
-
 #include <iostream>
 #include <Windows.h>
 #include <string>
-//право доступа SYNCHRONIZE
-int main(int argc, char* argv[])
-{
-    HANDLE inputHandle, outputHandle;
-    HANDLE h[4];
-    inputHandle = GetStdHandle(STD_INPUT_HANDLE);//запоминаем начальный ввод
-    outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);//запоминаем начальный вывод
-    LPSTR programm_name;
-    programm_name = argv[2];
-    STARTUPINFOA info = { sizeof(info) };
-    PROCESS_INFORMATION pi[2], pi3;
-    SECURITY_ATTRIBUTES sa{ true, NULL, sizeof(SECURITY_ATTRIBUTES) };//разрешаем наследование дескрипторов; защита по умолчанию
-    h[0] = CreateFileA("output1.txt", GENERIC_WRITE, 0, &sa, CREATE_ALWAYS, 0, NULL);
-    h[1] = CreateFileA("output2.txt", GENERIC_WRITE, 0, &sa, CREATE_ALWAYS, 0, NULL);
-    h[2] = CreateFileA("input2.txt", GENERIC_READ, 0, &sa, OPEN_EXISTING, 0, NULL);
-    h[3] = CreateFileA("input3.txt", GENERIC_READ, 0, &sa, OPEN_EXISTING, 0, NULL);
-    //вывод
-    SetStdHandle(STD_OUTPUT_HANDLE, h[0]);
-    if (CreateProcessA(NULL, programm_name, NULL, &sa, TRUE, 0, NULL, NULL, &info, &pi[0])) {
-        std::cout << "\tfirst" << std::endl;
+#include <iomanip>
+
+
+using namespace std;
+
+//process count - 5, 
+//ѕараллельно первые три, после завершени€ трех Ц параллельно последние два
+// P - 2, Q - 1
+
+
+int main(int argc, char * argv[]) {
+
+    PROCESS_INFORMATION pi[4];
+
+    HANDLE
+        outStreamHandle,
+        inputStreamHandle,
+        childIn,
+        childOut,
+        h2,
+        fileHandles[4];
+
+    DuplicateHandle(GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE), GetCurrentProcess(), &inputStreamHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
+
+    inputStreamHandle = GetStdHandle(STD_INPUT_HANDLE);
+    outStreamHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    // разрешение наследовани€ дескрипторов    
+    SECURITY_ATTRIBUTES sa{
+        sizeof(SECURITY_ATTRIBUTES),
+        NULL,
+        true
+    };
+
+    
+    STARTUPINFOA
+        fPrcInfo = { sizeof(fPrcInfo) },
+        sPrcInfo = { sizeof(sPrcInfo) },
+        tPrcInfo = { sizeof(tPrcInfo) };
+
+    fileHandles[0] = CreateFileA("inputFirstProcess.txt", GENERIC_READ, 0, &sa, OPEN_ALWAYS, 0, NULL);
+    fileHandles[1] = CreateFileA("inputSecondProcess.txt", GENERIC_READ, 0, &sa, OPEN_ALWAYS, 0, NULL);
+    fileHandles[2] = CreateFileA("outputSecondProcess.txt", GENERIC_WRITE, 0, &sa, CREATE_ALWAYS, 0, NULL);
+    fileHandles[3] = CreateFileA("outputThirdProcess.txt", GENERIC_WRITE, 0, &sa, CREATE_ALWAYS, 0, NULL);
+    
+
+    
+
+    LPSTR inputString = argv[2];
+
+
+    //выделение пам€ти дл€ структуры STARTUPINFO
+    ZeroMemory(&fPrcInfo, sizeof(STARTUPINFO));
+    ZeroMemory(&sPrcInfo, sizeof(STARTUPINFO));
+    ZeroMemory(&tPrcInfo, sizeof(STARTUPINFO));
+
+
+
+
+    //назначение потоков относительно Q-1
+    //fPrcInfo.hStdInput = fileHandles[0];
+
+    //sPrcInfo.hStdInput = fileHandles[1];
+    //sPrcInfo.hStdOutput = fileHandles[2];
+
+    //tPrcInfo.hStdOutput = fileHandles[3];
+   
+    SetStdHandle(STD_INPUT_HANDLE, fileHandles[0]);
+    if (CreateProcessA(argv[1], (char*)"1\ ", NULL, &sa, TRUE, 0, NULL, NULL, &fPrcInfo, &pi[0])) {
+        
+        cout << "\t first process start\n";
     }
-    SetStdHandle(STD_OUTPUT_HANDLE, h[1]);
-    SetStdHandle(STD_INPUT_HANDLE, h[2]);
-    //ввод/вывод
-    if (CreateProcessA(NULL, programm_name, NULL, &sa, TRUE, 0, NULL, NULL, &info, &pi[1]))
-    {
-        std::cout << "\tsecond" << std::endl;
+    SetStdHandle(STD_INPUT_HANDLE, fileHandles[1]);
+    SetStdHandle(STD_OUTPUT_HANDLE, fileHandles[2]);
+    if (CreateProcessA(argv[1], (char*)"2 ", NULL, &sa, TRUE, 0, NULL, NULL, &sPrcInfo, &pi[1])) {
+        std::cout << "\t second process start" << std::endl;
+
     }
-    WaitForMultipleObjects(2, &pi->hProcess, FALSE, INFINITE);
-    //ввод
-    SetStdHandle(STD_INPUT_HANDLE, h[3]);
-    SetStdHandle(STD_OUTPUT_HANDLE, outputHandle);
-    if (CreateProcessA(NULL, programm_name, NULL, &sa, TRUE, 0, NULL, NULL, &info, &pi3)) {
-        CloseHandle(pi3.hProcess);
-        CloseHandle(pi3.hThread);
-        std::cout << "\tthird" << std::endl;
-        WaitForSingleObject(&pi3.hProcess, INFINITE);
+
+    SetStdHandle(STD_INPUT_HANDLE, inputStreamHandle);
+    SetStdHandle(STD_OUTPUT_HANDLE, fileHandles[3]);
+    if (CreateProcessA(argv[1], (char*)"3 ", NULL, &sa, TRUE, 0, NULL, NULL, &tPrcInfo, &pi[2])) {
+        std::cout << "\t third process start" << std::endl;
     }
+    WaitForMultipleObjects(3, &pi->hProcess, TRUE, INFINITE);
+    SetStdHandle(STD_OUTPUT_HANDLE, outStreamHandle);
 }
