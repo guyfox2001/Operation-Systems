@@ -18,7 +18,9 @@ int main(int argc, char * argv[]) {
     HANDLE
         outStreamHandle,
         inputStreamHandle,
-        fileHandles[4];
+        fileHandles[4],
+        pHandle[3], 
+        ppHandle[2];
 
     DuplicateHandle(GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE), GetCurrentProcess(), &inputStreamHandle, 0, FALSE, DUPLICATE_SAME_ACCESS);
 
@@ -52,7 +54,7 @@ int main(int argc, char * argv[]) {
    
     SetStdHandle(STD_INPUT_HANDLE, fileHandles[0]);
     if (CreateProcessA(argv[1], (char*)"1\ ", NULL, &sa, TRUE, 0, NULL, NULL, &fPrcInfo, &fProcesses[0])) {
-        
+        pHandle[0] = fProcesses[0].hProcess;
         cout << "\t first process start\n";
     }
     /*WaitForSingleObject(pi[0].hProcess, INFINITE);*/
@@ -60,23 +62,26 @@ int main(int argc, char * argv[]) {
     SetStdHandle(STD_OUTPUT_HANDLE, fileHandles[2]);
     if (CreateProcessA(argv[1], (char*)"2 ", NULL, &sa, TRUE, 0, NULL, NULL, &sPrcInfo, &fProcesses[1])) {
         std::cout << "\t second process start" << std::endl;
-
+        pHandle[1] = fProcesses[1].hProcess;
     }
     SetStdHandle(STD_INPUT_HANDLE, inputStreamHandle);
     SetStdHandle(STD_OUTPUT_HANDLE, fileHandles[3]);
     if (CreateProcessA(argv[1], (char*)"3 ", NULL, &sa, FALSE, 0, NULL, NULL, &tPrcInfo, &fProcesses[2])) {
         std::cout << "\t third process start" << std::endl;
+        pHandle[2] = fProcesses[2].hProcess;
     }
     
-    cout << WaitForMultipleObjects(3, &fProcesses->hProcess, TRUE, INFINITE) << "\n";
+    cout << WaitForMultipleObjects(3, pHandle, TRUE, INFINITE) << "\n";
     SetStdHandle(STD_OUTPUT_HANDLE, outStreamHandle);
 
     if (CreateProcessA(argv[1], (char*)"4", NULL, &sa, FALSE, 0, NULL, NULL, &fPrcInfo, &sProcesses[0])) {
         std::cout << "\t foruth process start" << std::endl;
+        ppHandle[0] = sProcesses[0].hProcess;
     }
 
     if (CreateProcessA(argv[1], (char*)"5", NULL, &sa, FALSE, 0, NULL, NULL, &sPrcInfo, &sProcesses[1])) {
+        ppHandle[1] = sProcesses[1].hProcess;
         std::cout << "\t fifth process start" << std::endl;
     }
-    cout << WaitForMultipleObjects(2, &sProcesses->hProcess, TRUE, INFINITE);
+    cout << WaitForMultipleObjects(2, ppHandle, TRUE, INFINITE);
 }
