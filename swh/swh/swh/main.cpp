@@ -15,20 +15,21 @@ int main(int argc, char* argv[]) {
 	
 	cout << argv[0] << "\n";
 
-	/*WriteFile(stdOut, "Please input string\n", 21, NULL, NULL);*/
+	WriteFile(stdOut, "Please input string\n", 21, NULL, NULL);
 
-	cout << "Please input string \n";
+	/*cout << "Please input string \n";*/
 	
 	ReadFile(stdIn, &strbuf , 128, &dwReaded, NULL);
 
 
 
-	/*WriteFile(stdOut, "Inputed string: \n", 18 , &dwWritten, NULL);*/
+	WriteFile(stdOut, "Inputed string: \n", 18 , &dwWritten, NULL);
 
-	cout << "Input string \n";
+	/*cout << "Input string \n";*/
 
 	WriteFile(stdOut, &strbuf, dwReaded , &dwWritten, NULL);
+	WriteFile(stdOut, "\n", 1 , &dwWritten, NULL);
 
-	cout << "\n";
+	/*cout << "\n";*/
 	return 0;
 }

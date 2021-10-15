@@ -68,15 +68,15 @@ int main(int argc, char * argv[]) {
         std::cout << "\t third process start" << std::endl;
     }
     
-        /*DWORD dw = WaitForMultipleObjects(3, &fProcesses[2].hProcess, FALSE, INFINITE);*/
+    cout << WaitForMultipleObjects(3, &fProcesses->hProcess, TRUE, INFINITE) << "\n";
     SetStdHandle(STD_OUTPUT_HANDLE, outStreamHandle);
 
-    if (CreateProcessA(argv[1], (char*)"4", NULL, &sa, FALSE, 0, NULL, NULL, &tPrcInfo, &sProcesses[0])) {
-        std::cout << "\t third process start" << std::endl;
+    if (CreateProcessA(argv[1], (char*)"4", NULL, &sa, FALSE, 0, NULL, NULL, &fPrcInfo, &sProcesses[0])) {
+        std::cout << "\t foruth process start" << std::endl;
     }
 
-    if (CreateProcessA(argv[1], (char*)"5", NULL, &sa, FALSE, 0, NULL, NULL, &tPrcInfo, &sProcesses[1])) {
-        std::cout << "\t third process start" << std::endl;
+    if (CreateProcessA(argv[1], (char*)"5", NULL, &sa, FALSE, 0, NULL, NULL, &sPrcInfo, &sProcesses[1])) {
+        std::cout << "\t fifth process start" << std::endl;
     }
-    WaitForMultipleObjects(2, &sProcesses->hProcess, TRUE, INFINITE);
+    cout << WaitForMultipleObjects(2, &sProcesses->hProcess, TRUE, INFINITE);
 }
